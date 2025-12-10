@@ -37,7 +37,7 @@ class TelegramBot:
         # Store pending feedback log IDs
         self.pending_feedback: Dict[int, str] = {}
     
-    async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def start_command(self, message: Message, state: FSMContext):
         """Handle /start command."""
         user = update.effective_user
         telegram_id = user.id
