@@ -46,11 +46,11 @@ class TelegramBot:
         user = update.effective_user
         telegram_id = user.id
         
-        welcome_message = f"""👋 Welcome to **Gitinsky Support Bot**!
+        welcome_message = f"""👋 Добро пожаловать в Gitinsky GPT**!
 
-I'm here to help you with technical questions about the technologies we use in our projects.
+Я здесь, чтобы помочь тебе с техническими вопросами по нашим проектам!
 
-**Supported Technologies:**
+**Основной стэк:**
 🔹 Orchestration: Ansible, Kubernetes, OpenShift, Puppet
 🔹 Containers: Docker, Docker Swarm, Docker Compose
 🔹 IaC: Terraform
@@ -62,12 +62,14 @@ I'm here to help you with technical questions about the technologies we use in o
 🔹 Programming: Python
 🔹 System Administration
 
+Стек еще будет расширяться по мере работы
+
 """
         
         if self.auth_service.check_user_verified(telegram_id):
-            welcome_message += "✅ You're verified! Just send me your technical questions.\n\nUse /help to see all available commands."
+            welcome_message += "✅ Ваш аккаунт подтвержден! Задайте мне вопрос.\n\nИспользуй /help чтобы увидеть все доступные команды."
         else:
-            welcome_message += "⚠️ You need to verify your company email first.\n\nUse /verify to start the verification process."
+            welcome_message += "⚠️ Сперва нужно подтвердить рабочую электронную почту.\n\nИспользуй /verify чтобы начать процесс подтверждения."
         
         await update.message.reply_text(welcome_message, parse_mode=ParseMode.MARKDOWN)
     
@@ -77,27 +79,27 @@ I'm here to help you with technical questions about the technologies we use in o
         
         if not self.auth_service.check_user_verified(telegram_id):
             await update.message.reply_text(
-                "⚠️ Please verify your email first using /verify"
+                "⚠️ Пожалуйста, подтверди свою рабочую почту, прежде чем использовать /verify"
             )
             return
         
         help_text = """📖 **Available Commands:**
 
-/start - Start the bot and see welcome message
-/help - Display this help message
-/status - Check your verification status
-/verify - Start email verification process
-/feedback - Rate the last response
+/start - Запустить бота
+/help - Помощь
+/status - Проверить статус подтверждения
+/verify - Начать процесс подтверждения электронной почты
+/feedback - Оценить последний ответ
 
-**How to use:**
-Just send me your technical question, and I'll help you based on our company's knowledge base and best practices.
+**Как использовать:**
+Просто отправь мне твой технический вопрос, и я помогу тебе на основе решить вопрос на основе проектов нашей компании.
 
 **Example questions:**
-• "How do I deploy an app with Kubernetes?"
-• "What's the best way to write an Ansible playbook?"
-• "How to troubleshoot Docker container issues?"
+• "Какие команды использовать для деплоя приложения с Kubernetes?"
+• "Как написать Ansible playbook?"
+• "Как решить проблему с Docker контейнерами?"
 
-Need help? Contact your team lead or system administrator.
+Нужна помощь? Обратись к @nkarnaw.
 """
         
         if self.auth_service.is_admin(telegram_id):
@@ -137,13 +139,13 @@ Need help? Contact your team lead or system administrator.
         if success:
             await update.message.reply_text(
                 f"✅ {message}\n\n"
-                f"Please check your email and enter the verification code:"
+                f"Пожалуйста, проверь свою почту и введи код:"
             )
             return AWAITING_CODE
         else:
             await update.message.reply_text(
                 f"❌ {message}\n\n"
-                f"Please try again with a valid company email:"
+                f"Пожалуйста, попробуй еще раз с правильным почтовым адресом:"
             )
             return AWAITING_EMAIL
     
@@ -159,13 +161,13 @@ Need help? Contact your team lead or system administrator.
         if success:
             return ConversationHandler.END
         else:
-            await update.message.reply_text("Please enter the correct code or use /verify to get a new one:")
+            await update.message.reply_text("Пожалуйста, введи правильный код или используй /verify, чтобы получить новый:")
             return AWAITING_CODE
     
     async def verify_cancel(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Cancel verification process."""
         await update.message.reply_text(
-            "❌ Verification cancelled. Use /verify to start again."
+            "❌ Проверка отменена. Используй /verify, чтобы начать снова."
         )
         return ConversationHandler.END
     
@@ -174,7 +176,7 @@ Need help? Contact your team lead or system administrator.
         telegram_id = update.effective_user.id
         
         if not self.auth_service.check_user_verified(telegram_id):
-            await update.message.reply_text("⚠️ Please verify your email first using /verify")
+            await update.message.reply_text("⚠️ Пожалуйста, подтверди свою рабочую почту, прежде чем использовать /verify")
             return
         
         # Get last interaction
@@ -186,7 +188,7 @@ Need help? Contact your team lead or system administrator.
                 ).order_by(InteractionLog.timestamp.desc()).first()
                 
                 if not last_log:
-                    await update.message.reply_text("No recent responses to rate.")
+                    await update.message.reply_text("Нет недавних ответов для оценки.")
                     return
                 
                 # Create feedback keyboard
@@ -199,12 +201,12 @@ Need help? Contact your team lead or system administrator.
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 
                 await update.message.reply_text(
-                    "How would you rate the last response?",
+                    "Как бы ты оценил(а) последний ответ?",
                     reply_markup=reply_markup
                 )
         except Exception as e:
             logger.error(f"Error in feedback command: {e}")
-            await update.message.reply_text("Error retrieving feedback options.")
+            await update.message.reply_text("Ошибка при получении вариантов оценки.")
     
     async def feedback_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle feedback button clicks."""
@@ -228,13 +230,13 @@ Need help? Contact your team lead or system administrator.
                         db.commit()
                         
                         await query.edit_message_text(
-                            f"✅ Thank you for your feedback! ({feedback_value.replace('_', ' ')})"
+                            f"✅ Спасибо за твой фидбек! ({feedback_value.replace('_', ' ')})"
                         )
                     else:
-                        await query.edit_message_text("Error: Feedback entry not found.")
+                        await query.edit_message_text("Ошибка: фидбек не найден.")
             except Exception as e:
                 logger.error(f"Error saving feedback: {e}")
-                await query.edit_message_text("Error saving feedback.")
+                await query.edit_message_text("Ошибка при сохранении фидбека.")
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle regular messages (technical questions)."""
@@ -245,7 +247,7 @@ Need help? Contact your team lead or system administrator.
         # Check if user is verified
         if not self.auth_service.check_user_verified(telegram_id):
             await update.message.reply_text(
-                "⚠️ You need to verify your company email first.\n\nUse /verify to start the verification process."
+                "⚠️ Тебе нужно подтвердить свою рабочую почту.\n\nИспользуй /verify чтобы начать процесс подтверждения."
             )
             return
         
@@ -278,12 +280,12 @@ Need help? Contact your team lead or system administrator.
                     pass
             else:
                 await update.message.reply_text(
-                    "Sorry, I encountered an error processing your request. Please try again."
+                    "К сожалению, я столкнулся с ошибкой при обработке твоего запроса. Попробуй еще раз."
                 )
         except Exception as e:
             logger.error(f"Error processing message: {e}")
             await update.message.reply_text(
-                "An error occurred while processing your request. Please try again later."
+                "Произошла ошибка при обработке твоего запроса. Попробуй еще раз позже."
             )
     
     async def admin_list_users(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -291,7 +293,7 @@ Need help? Contact your team lead or system administrator.
         telegram_id = update.effective_user.id
         
         if not self.auth_service.is_admin(telegram_id):
-            await update.message.reply_text("⚠️ This command is only available to administrators.")
+            await update.message.reply_text("⚠️ Эта команда доступна только для администраторов.")
             return
         
         try:
@@ -302,7 +304,7 @@ Need help? Contact your team lead or system administrator.
                 ).all()
                 
                 if not users:
-                    await update.message.reply_text("No verified users found.")
+                    await update.message.reply_text("Нет подтвержденных пользователей.")
                     return
                 
                 user_list = "**Verified Users:**\n\n"
