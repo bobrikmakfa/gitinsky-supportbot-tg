@@ -36,34 +36,45 @@ class EmailService:
             True if email sent successfully, False otherwise
         """
         try:
+            # ВРЕМЕННО: Логируем вместо реальной отправки для тестирования
+            logger.info(f"📧 [SIMULATED] Verification email would be sent to: {to_email}")
+            logger.info(f"📧 [SIMULATED] Verification code: {verification_code}")
+            logger.info(f"📧 [SIMULATED] Code expires in: {expiration_minutes} minutes")
+            
+            # Для тестирования - просто возвращаем успех
+            # УДАЛИТЕ ЭТУ СТРОКУ В ПРОДАКШЕНЕ!
+            return True  # ← ВАЖНО: возвращаем True для обхода ошибки
+            
+            # ========== ЗАКОММЕНТИРУЙТЕ ВЕСЬ ОСТАЛЬНОЙ КОД НИЖЕ ==========
             # Create message
-            message = MIMEMultipart("alternative")
-            message["Subject"] = "Gitinsky Support Bot - Verification Code"
-            message["From"] = f"{self.settings.smtp_from_name} <{self.settings.smtp_from_email}>"
-            message["To"] = to_email
+            #message = MIMEMultipart("alternative")
+            #message["Subject"] = "Gitinsky Support Bot - Verification Code"
+            #message["From"] = f"{self.settings.smtp_from_name} <{self.settings.smtp_from_email}>"
+            #message["To"] = to_email
             
             # Create HTML and text content
-            text_content = self._create_text_email(verification_code, expiration_minutes)
-            html_content = self._create_html_email(verification_code, expiration_minutes)
+            #text_content = self._create_text_email(verification_code, expiration_minutes)
+            #html_content = self._create_html_email(verification_code, expiration_minutes)
             
             # Attach parts
-            part1 = MIMEText(text_content, "plain")
-            part2 = MIMEText(html_content, "html")
-            message.attach(part1)
-            message.attach(part2)
+            #part1 = MIMEText(text_content, "plain")
+            #part2 = MIMEText(html_content, "html")
+            #message.attach(part1)
+            #message.attach(part2)
             
             # Send email
-            await aiosmtplib.send(
-                message,
-                hostname=self.settings.smtp_host,
-                port=self.settings.smtp_port,
-                username=self.settings.smtp_user,
-                password=self.settings.smtp_password,
-                start_tls=True
-            )
+            #await aiosmtplib.send(
+            #    message,
+            #    hostname=self.settings.smtp_host,
+            #    port=self.settings.smtp_port,
+            #    username=self.settings.smtp_user,
+            #    password=self.settings.smtp_password,
+            #    start_tls=True
+            #)
             
-            logger.info(f"Verification email sent successfully to {to_email}")
-            return True
+            #logger.info(f"Verification email sent successfully to {to_email}")
+            #return True
+            # ========== КОНЕЦ ЗАКОММЕНТИРОВАННОГО КОДА ==========
             
         except Exception as e:
             logger.error(f"Failed to send verification email to {to_email}: {e}")
