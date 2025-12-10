@@ -120,8 +120,8 @@ class TelegramBot:
     async def verify_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /verify command - start verification."""
         await update.message.reply_text(
-            f"📧 **Email Verification**\n\n"
-            f"Please send me your company email address (must be from @{self.settings.company_email_domain}):"
+            f"📧 **Подтверждение почты**\n\n"
+            f"Пожалуйста, отправь мне свою рабочую почту (должна быть @{self.settings.company_email_domain}):"
         )
         return AWAITING_EMAIL
     
