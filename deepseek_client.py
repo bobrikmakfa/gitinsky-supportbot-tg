@@ -3,8 +3,8 @@
 import time
 import logging
 from typing import Optional, Dict, Any, List
-from openai import OpenAI, APIError, APITimeoutError, RateLimitError
 import httpx
+from openai import OpenAI
 
 from config import get_settings
 
@@ -17,11 +17,20 @@ class DeepSeekClient:
     def __init__(self):
         """Initialize DeepSeek client."""
         self.settings = get_settings()
-        self.client = OpenAI(
-            api_key=self.settings.deepseek_api_key,
-            base_url=self.settings.deepseek_api_url,
-            timeout=httpx.Timeout(self.settings.api_timeout_seconds)
-        )
+        
+        # Проверяем наличие API ключа
+        if not self.settings.deepseek_api_key:
+            logger.error("DEEPSEEK_API_KEY not found in configuration!")
+            # Не падаем, чтобы бот мог работать без AI
+            self.client = None
+        else:
+            # Инициализируем OpenAI client для DeepSeek API
+            self.client = OpenAI(
+                api_key=self.settings.deepseek_api_key,
+                base_url=self.settings.deepseek_api_url or "https://api.deepseek.com",
+                timeout=httpx.Timeout(self.settings.api_timeout_seconds or 30.0)
+            )
+        
         self.max_retries = 3
         self.retry_delay = 2  # seconds
     
@@ -35,32 +44,32 @@ class DeepSeekClient:
         Returns:
             System prompt string
         """
-        base_prompt = """You are a technical support assistant for Gitinsky, an IT company. 
-Your role is to help company employees with technical questions related to the technology stacks used in projects.
+        base_prompt = """Ты технический ассистент поддержки для компании Gitinsky. 
+Твоя роль - помогать сотрудникам компании с техническими вопросами, связанными со стеками технологий, используемыми в проектах.
 
-Your responsibilities:
-- Provide accurate, concise technical assistance
-- Focus on practical solutions and best practices
-- Use clear, professional language
-- If you're unsure, acknowledge it and suggest alternative resources
-- Format code snippets clearly with proper syntax
-- Provide step-by-step instructions when appropriate
+Твои обязанности:
+- Предоставлять точную, краткую техническую помощь
+- Фокусироваться на практических решениях и лучших практиках
+- Использовать четкий, профессиональный язык (русский)
+- Если не уверен, признай это и предложи альтернативные ресурсы
+- Форматировать сниппеты кода четко с правильным синтаксисом
+- Предоставлять пошаговые инструкции, когда это уместно
 
-Technology areas you support:
-- Orchestration: Ansible, Kubernetes, OpenShift, Puppet
-- Containerization: Docker, Docker Swarm, Docker Compose
+Области технологий, которые ты поддерживаешь:
+- Оркестрация: Ansible, Kubernetes, OpenShift, Puppet
+- Контейнеризация: Docker, Docker Swarm, Docker Compose
 - Infrastructure as Code: Terraform
 - CI/CD: Argo CD, GitLab CI
-- Monitoring & Logging: ELK Stack, Zabbix, Grafana, Prometheus
-- Databases: MySQL, PostgreSQL
-- Networking: Cisco, Mikrotik, Keenetic
-- Operating Systems: Linux, Windows Administration
-- Programming: Python
-- System Administration
+- Мониторинг и логирование: ELK Stack, Zabbix, Grafana, Prometheus
+- Базы данных: MySQL, PostgreSQL
+- Сети: Cisco, Mikrotik, Keenetic
+- Операционные системы: Linux, Windows Administration
+- Программирование: Python
+- Системное администрирование
 """
         
         if knowledge_context:
-            base_prompt += f"\n\nRelevant company knowledge base:\n{knowledge_context}"
+            base_prompt += f"\n\nРелевантная информация из базы знаний компании:\n{knowledge_context}"
         
         return base_prompt
     
@@ -79,14 +88,18 @@ Technology areas you support:
             conversation_history: Previous conversation messages
             
         Returns:
-            Dictionary with response data:
-            {
-                'success': bool,
-                'response': str,
-                'tokens_used': int,
-                'error': Optional[str]
-            }
+            Dictionary with response data
         """
+        # Если нет клиента (нет API ключа), сразу возвращаем ошибку
+        if self.client is None:
+            return {
+                'success': False,
+                'response': '',
+                'tokens_used': 0,
+                'response_time_ms': 0,
+                'error': 'No API key configured'
+            }
+        
         start_time = time.time()
         
         # Prepare messages
@@ -107,7 +120,7 @@ Technology areas you support:
                 response = self.client.chat.completions.create(
                     model="deepseek-chat",
                     messages=messages,
-                    max_tokens=self.settings.max_response_tokens,
+                    max_tokens=getattr(self.settings, 'max_response_tokens', 1000),
                     temperature=0.7,
                     stream=False
                 )
@@ -125,76 +138,45 @@ Technology areas you support:
                 logger.info(f"DeepSeek API call successful. Tokens: {result['tokens_used']}, Time: {response_time_ms}ms")
                 return result
                 
-            except RateLimitError as e:
-                logger.warning(f"Rate limit error (attempt {attempt + 1}/{self.max_retries}): {e}")
-                if attempt < self.max_retries - 1:
-                    time.sleep(self.retry_delay * (attempt + 1))  # Exponential backoff
-                    continue
-                return {
-                    'success': False,
-                    'response': '',
-                    'tokens_used': 0,
-                    'response_time_ms': int((time.time() - start_time) * 1000),
-                    'error': 'Rate limit exceeded. Please try again in a moment.'
-                }
-                
-            except APITimeoutError as e:
-                logger.error(f"API timeout (attempt {attempt + 1}/{self.max_retries}): {e}")
-                if attempt < self.max_retries - 1:
-                    continue
-                return {
-                    'success': False,
-                    'response': '',
-                    'tokens_used': 0,
-                    'response_time_ms': int((time.time() - start_time) * 1000),
-                    'error': 'Request timeout. Please try again.'
-                }
-                
-            except APIError as e:
-                logger.error(f"API error: {e}")
-                return {
-                    'success': False,
-                    'response': '',
-                    'tokens_used': 0,
-                    'response_time_ms': int((time.time() - start_time) * 1000),
-                    'error': f'API error: {str(e)}'
-                }
-                
             except Exception as e:
-                logger.error(f"Unexpected error in DeepSeek API call: {e}")
+                logger.error(f"API error (attempt {attempt + 1}/{self.max_retries}): {e}")
+                if attempt < self.max_retries - 1:
+                    time.sleep(self.retry_delay * (attempt + 1))
+                    continue
+                
                 return {
                     'success': False,
                     'response': '',
                     'tokens_used': 0,
                     'response_time_ms': int((time.time() - start_time) * 1000),
-                    'error': 'An unexpected error occurred. Please try again.'
+                    'error': str(e)
                 }
-        
-        # Should not reach here, but just in case
-        return {
-            'success': False,
-            'response': '',
-            'tokens_used': 0,
-            'response_time_ms': int((time.time() - start_time) * 1000),
-            'error': 'Failed after multiple retries.'
-        }
     
-    def get_fallback_response(self) -> str:
+    async def get_simple_response(self, query: str) -> str:
         """
-        Get fallback response when API is unavailable.
+        Simple method to get AI response (for use in bot).
         
+        Args:
+            query: User's question
+            
         Returns:
-            Fallback response message
+            AI response or fallback message
         """
-        return """I'm experiencing technical difficulties connecting to the AI service right now. 
+        result = await self.generate_response(query)
+        
+        if result['success']:
+            return result['response']
+        else:
+            # Fallback message in Russian
+            return """Испытываю технические трудности при подключении к AI-сервису в данный момент.
 
-Please try one of the following:
-1. Try your question again in a few moments
-2. Rephrase your question
-3. Contact your team lead or system administrator directly
-4. Check our internal documentation wiki
+Пожалуйста:
+1. Попробуйте задать вопрос еще раз через несколько минут
+2. Переформулируйте вопрос
+3. Обратитесь напрямую к вашему team lead или системному администратору
+4. Проверьте нашу внутреннюю документацию или wiki
 
-I apologize for the inconvenience!"""
+Приношу извинения за неудобства!"""
 
 
 # Global DeepSeek client instance
