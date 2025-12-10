@@ -1,10 +1,9 @@
-# Telegram Bot API
-python-telegram-bot==20.7
-telegram==0.0.1
+# Telegram Bot Framework (используется в вашем коде)
+aiogram==3.0.0b7
 
 # DeepSeek API / OpenAI compatible client
 openai==1.12.0
-httpx==0.26.0
+httpx==0.25.2  # версия, совместимая с openai 1.12.0
 
 # Database
 sqlalchemy==2.0.25
@@ -30,5 +29,4 @@ cryptography==42.0.2
 structlog==24.1.0
 
 # Async support
-asyncio==3.4.3
 aiofiles==23.2.1
