@@ -2,7 +2,7 @@
 
 import logging
 from typing import Dict, Optional
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
