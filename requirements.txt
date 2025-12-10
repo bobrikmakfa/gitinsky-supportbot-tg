@@ -1,5 +1,6 @@
 # Telegram Bot Framework (используется в вашем коде)
 aiogram==3.0.0b7
+python-telegram-bot==20.7
 
 # DeepSeek API / OpenAI compatible client
 openai==1.12.0

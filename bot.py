@@ -2,13 +2,17 @@
 
 import logging
 from typing import Dict, Optional
-from aiogram.types import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram import Bot, Dispatcher, Router, F
-from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Command
-from aiogram.enums import ParseMode
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    CallbackQueryHandler,
+    ContextTypes,
+    filters,
+    ConversationHandler
+)
+from telegram.constants import ParseMode
 
 from config import get_settings
 from auth import get_auth_service
@@ -37,7 +41,7 @@ class TelegramBot:
         # Store pending feedback log IDs
         self.pending_feedback: Dict[int, str] = {}
     
-    async def start_command(self, message: Message, state: FSMContext):
+    async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command."""
         user = update.effective_user
         telegram_id = user.id
