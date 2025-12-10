@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from aiogram.types import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram import Bot, Dispatcher, Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Command, Text
+from aiogram.filters import Command
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
