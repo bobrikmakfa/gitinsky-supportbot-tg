@@ -13,9 +13,9 @@ class Settings(BaseSettings):
     telegram_bot_token: str = Field(..., description="Telegram bot token from BotFather")
     
     # DeepSeek API Configuration
-    openrouter_api_key: str = Field(..., description="DeepSeek API key")
+    openrouter_api_key: str = Field(..., description="OPENROUTER_API_KEY")
     deepseek_api_url: str = Field(
-        default="https://api.deepseek.com/v1",
+        default="https://api.deepseek.com",
         description="DeepSeek API endpoint URL"
     )
     
