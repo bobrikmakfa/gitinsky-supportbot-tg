@@ -54,6 +54,7 @@ TELEGRAM_BOT_TOKEN=your_bot_token_from_botfather
 # DeepSeek API Configuration
 DEEPSEEK_API_KEY=your_deepseek_api_key
 DEEPSEEK_API_URL=https://api.deepseek.com/v1
+OPENROUTER_API_KEY=your_openrouter_api_key
 
 # Database Configuration
 DATABASE_URL=sqlite:///./gitinsky_bot.db
@@ -203,7 +204,7 @@ If your Telegram ID is in `ADMIN_TELEGRAM_IDS`:
 
 ### DeepSeek API errors
 
-- Verify `DEEPSEEK_API_KEY` is correct
+- Verify `OPENROUTER_API_KEY` is correct
 - Check API quota/limits
 - Verify internet connectivity
 - Review `bot.log` for specific errors

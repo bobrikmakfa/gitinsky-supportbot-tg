@@ -86,7 +86,7 @@ echo To start the bot, run: python main.py
 echo.
 echo Make sure you have configured .env with:
 echo   - TELEGRAM_BOT_TOKEN
-echo   - DEEPSEEK_API_KEY
+echo   - OPENROUTER_API_KEY
 echo   - SMTP settings
 echo   - COMPANY_EMAIL_DOMAIN
 echo.

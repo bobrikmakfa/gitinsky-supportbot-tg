@@ -441,7 +441,7 @@ Each technology entry shall follow structured format:
 | Variable | Purpose | Example Value | Required |
 |----------|---------|---------------|----------|
 | TELEGRAM_BOT_TOKEN | Telegram bot authentication | 123456:ABC-DEF... | Yes |
-| DEEPSEEK_API_KEY | DeepSeek API authentication | sk-... | Yes |
+| OPENROUTER_API_KEY | DeepSeek API authentication | sk-... | Yes |
 | DEEPSEEK_API_URL | DeepSeek API endpoint | https://api.deepseek.com | Yes |
 | DATABASE_URL | Database connection string | postgresql://... | Yes |
 | SMTP_HOST | Email server host | smtp.company.com | Yes |

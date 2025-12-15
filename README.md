@@ -169,6 +169,7 @@ Key environment variables:
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token
 DEEPSEEK_API_KEY=your_api_key
+OPENROUTER_API_KEY=your_api_key
 SMTP_HOST=smtp.gmail.com
 SMTP_USER=your_email@company.com
 COMPANY_EMAIL_DOMAIN=yourcompany.com

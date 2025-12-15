@@ -19,14 +19,14 @@ class DeepSeekClient:
         self.settings = get_settings()
         
         # Проверяем наличие API ключа
-        if not self.settings.deepseek_api_key:
-            logger.error("DEEPSEEK_API_KEY not found in configuration!")
+        if not self.settings.openrouter_api_key:
+            logger.error("OPENROUTER_API_KEY not found in configuration!")
             # Не падаем, чтобы бот мог работать без AI
             self.client = None
         else:
             # Инициализируем OpenAI client для DeepSeek API
             self.client = OpenAI(
-                api_key=self.settings.deepseek_api_key,
+                api_key=self.settings.openrouter_api_key,
                 base_url=self.settings.deepseek_api_url or "https://api.deepseek.com",
                 timeout=httpx.Timeout(self.settings.api_timeout_seconds or 30.0)
             )
